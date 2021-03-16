@@ -137,9 +137,21 @@ u-boot-atf-tee.bin: u-boot.bin bl31.bin tee.bin
 clean:
 	@rm -f $(MKIMG) u-boot-atf.bin u-boot-atf-tee.bin u-boot-spl-ddr.bin u-boot.itb u-boot.its u-boot-ddr3l.itb u-boot-ddr3l.its u-boot-spl-ddr3l.bin u-boot-ddr4.itb u-boot-ddr4.its u-boot-spl-ddr4.bin u-boot-ddr4-evk.itb u-boot-ivt.itb u-boot-ddr4-evk.its $(OUTIMG)
 
-dtbs = evk.dtb
+#dtbs_ctouch = ctouch.dtb
+#$(dtbs_ctouch):
+#	./$(DTB_PREPROC) $(PLAT)-ctouch.dtb $(dtbs_ctouch)
+
+#u-boot-ctouch.itb: $(dtbs_ctouch)
+#	./$(PAD_IMAGE) tee.bin
+#	./$(PAD_IMAGE) bl31.bin
+#	./$(PAD_IMAGE) u-boot-nodtb.bin $(dtbs_ctouch)
+#	DEK_BLOB_LOAD_ADDR=$(DEK_BLOB_LOAD_ADDR) TEE_LOAD_ADDR=$(TEE_LOAD_ADDR) ATF_LOAD_ADDR=$(ATF_LOAD_ADDR) ./mkimage_fit_atf.sh $(dtbs_ctouch) > u-boot.its
+#	./mkimage_uboot -E -p 0x3000 -f u-boot.its u-boot.itb
+#	@rm -f u-boot.its $(dtbs_ctouch)
+
+dtbs = ctouch.dtb
 $(dtbs):
-	./$(DTB_PREPROC) $(PLAT)-evk.dtb $(dtbs)
+	./$(DTB_PREPROC) $(PLAT)-ctouch.dtb $(dtbs)
 
 u-boot.itb: $(dtbs)
 	./$(PAD_IMAGE) tee.bin
@@ -218,7 +230,9 @@ flash_ddr4_val: $(MKIMG) signed_hdmi_imx8m.bin u-boot-spl-ddr4.bin u-boot-ddr4.i
 	./mkimage_imx8 -fit -signed_hdmi signed_hdmi_imx8m.bin -loader u-boot-spl-ddr4.bin $(SPL_LOAD_ADDR) -second_loader u-boot-ddr4.itb 0x40200000 0x60000 -out $(OUTIMG)
 
 else
-flash_evk: flash_evk_no_hdmi
+#flash_evk: flash_evk_no_hdmi
+
+flash_ctouch: flash_ctouch_no_hdmi
 
 flash_evk_emmc_fastboot: flash_evk_no_hdmi_emmc_fastboot
 
@@ -232,7 +246,10 @@ flash_ddr4_val: flash_ddr4_val_no_hdmi
 
 endif
 
-flash_evk_no_hdmi: $(MKIMG) u-boot-spl-ddr.bin u-boot.itb
+#flash_evk_no_hdmi: $(MKIMG) u-boot-spl-ddr.bin u-boot.itb
+#	./mkimage_imx8 -version $(VERSION) -fit -loader u-boot-spl-ddr.bin $(SPL_LOAD_ADDR) -second_loader u-boot.itb 0x40200000 0x60000 -out $(OUTIMG)
+
+flash_ctouch_no_hdmi: $(MKIMG) u-boot-spl-ddr.bin u-boot.itb
 	./mkimage_imx8 -version $(VERSION) -fit -loader u-boot-spl-ddr.bin $(SPL_LOAD_ADDR) -second_loader u-boot.itb 0x40200000 0x60000 -out $(OUTIMG)
 
 flash_evk_no_hdmi_dual_bootloader: $(MKIMG) u-boot-spl-ddr.bin u-boot.itb
@@ -275,6 +292,8 @@ flash_hdmi_spl_uboot: flash_evk
 flash_dp_spl_uboot: flash_dp_evk
 
 flash_spl_uboot: flash_evk_no_hdmi
+
+flash_ctouch_spl_uboot: flash_ctouch_no_hdmi
 
 print_fit_hab: u-boot-nodtb.bin bl31.bin $(dtbs)
 	./$(PAD_IMAGE) tee.bin
